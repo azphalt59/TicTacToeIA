@@ -4,57 +4,82 @@ using UnityEngine;
 
 public class IaManager : MonoBehaviour
 { 
+
     public void IaPlay()
     {
+        // Random IA Play
+        //RandomIaPlay();
+        // Unbeatable IA
+        FindBestMove();
+    }
+     public void RandomIaPlay()
+     {
         int rand = Random.Range(0, GameManager.Instance.EmptyCases.Count);
         GameManager.Instance.EmptyCases[rand].GetComponent<Case>().IaTake();
-    }
+        GameManager.Instance.turnState = GameManager.TurnState.PlayerTurn;
+     }
 
-
-    public void MakeAiMove()
+    public void IATakeCase(int index)
     {
-        int bestVal = -11;
-        int[] bestMove = new int[9];
-        Case[] newBoard = new Case[9];
-        List<GameObject> movePossibilities = new List<GameObject>();
-
-        for (int i = 0; i < GameManager.Instance.Cases.Count; i++)
-        {
-            newBoard[i] = GameManager.Instance.Cases[i]; 
-        }
-        for (int i = 0; i < GameManager.Instance.EmptyCases.Count; i++)
-        {
-            movePossibilities.Add(GameManager.Instance.EmptyCases[i].gameObject);
-        }
-
-        foreach (int[] move in movePossibilities)
-        {
-            int value = Minimax(,movePossibilities.Count, false);
-            if(value > bestVal)
-            {
-                bestVal = value;
-                bestMove = move;
-            }
-        }
-
-
+        GameManager.Instance.Cases[index].GetComponent<Case>().IaTake();
     }
-
-    public int Minimax(int position ,int depth, bool isMaximizingPlayer)
+    private void FindBestMove()
     {
-        // Vérifier si le jeu est terminé ou si la profondeur maximale a été atteinte
-        if (GameManager.Instance.EmptyCases.Count == 0 || depth == 0)
-        {
-            return 0; // évaluer le plateau de jeu
-        }
-
-        // Déterminer le joueur qui doit jouer
-        int player = isMaximizingPlayer ? 1 : -1;
+        int bestMove =-1;
         int bestScore = int.MinValue;
 
-        // Explorer tous les coups possibles et choisir le meilleur score
-       
+        for (int i = 0; i < 9; i++)
+        {
+            if(GameManager.Instance.Cases[i].Type == Case.CaseType.Free)
+            {
+                GameManager.Instance.SimulateTurn(i, Case.CaseType.IA);
+                int score = Minimax(Case.CaseType.IA);
+                GameManager.Instance.CancelTurn(i);
+                if(score > bestScore)
+                {
+                    bestScore = score;
+                    bestMove = i;
+                }
+            }
+        }
+        Debug.Log("Le meilleur score est de " + bestScore);
+        Debug.Log("La meilleure case à prendre est la case n° " + bestMove);
+        IATakeCase(bestMove);
+    }
+   
+    private int Minimax(Case.CaseType type)
+    {
+        if(GameManager.Instance.CheckWin(Case.CaseType.Player))
+        {
+            return -1;
+        }
+        else if (GameManager.Instance.CheckWin(Case.CaseType.IA))
+        {
+            return 1;
+        }
+        else if(GameManager.Instance.CheckDraw())
+        {
+            return 0;
+        }
 
+        int bestScore = type == Case.CaseType.IA ? int.MinValue : int.MaxValue;
+        for (int i = 0; i < 9; i++)
+        {
+            if(GameManager.Instance.Cases[i].Type == Case.CaseType.Free)
+            {
+                GameManager.Instance.SimulateTurn(i, type);
+                int score = Minimax(type == Case.CaseType.IA ? Case.CaseType.Player : Case.CaseType.IA);
+                GameManager.Instance.CancelTurn(i);
+                if(type == Case.CaseType.IA)
+                {
+                    bestScore = Mathf.Max(bestScore, score);
+                }
+                else
+                {
+                    bestScore = Mathf.Min(bestScore, score);
+                }
+            }
+        }
         return bestScore;
     }
 

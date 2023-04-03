@@ -37,23 +37,27 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        CheckWin();
         
         if(turnState == TurnState.IaTurn)
         {
+            turnState = TurnState.PlayerTurn;
+            //turnState = TurnState.PlayerTurn;
+            Debug.Log("IA PLAY");
             Ia.IaPlay();
         }
 
     }
-
-    public void CheckWin()
+    public void SimulateTurn(int index, Case.CaseType type)
     {
-        if(EmptyCases.Count == 0)
-        {
-            turnState = TurnState.EndMatch;
-            winText.text = "Draw";
-            WinGameObject.SetActive(true);
-        }
+        Cases[index].Type = type; 
+    }
+    public void CancelTurn(int index)
+    {
+        Cases[index].Type = Case.CaseType.Free;
+    }
+    public int CheckWin()
+    {
+       
         // Horizontal
         for (int i = 0; i < 2; i++)
         {
@@ -64,7 +68,7 @@ public class GameManager : MonoBehaviour
                     turnState = TurnState.EndMatch;
                     winText.text = "Player Win";
                     WinGameObject.SetActive(true);
-                    return;
+                    return -1;
                 }
                    
 
@@ -72,7 +76,7 @@ public class GameManager : MonoBehaviour
                 {
                     turnState = TurnState.EndMatch;
                     winText.text = "IA Win";
-                    return;
+                    return 1;
                 }
             }
         }
@@ -88,7 +92,7 @@ public class GameManager : MonoBehaviour
                     turnState = TurnState.EndMatch;
                     winText.text = "Player Win";
                     WinGameObject.SetActive(true);
-                    return;
+                    return -1;
                 }
 
 
@@ -97,12 +101,12 @@ public class GameManager : MonoBehaviour
                     turnState = TurnState.EndMatch;
                     winText.text = "IA Win";
                     WinGameObject.SetActive(true);
-                    return;
+                    return 1;
                 }
             }
         }
 
-        // Diagonal
+        // Diagonals
         if (Cases[0].Type == Cases[4].Type && Cases[0].Type == Cases[8].Type)
         {
 
@@ -111,7 +115,7 @@ public class GameManager : MonoBehaviour
                 turnState = TurnState.EndMatch;
                 winText.text = "Player Win";
                 WinGameObject.SetActive(true);
-                return;
+                return -1;
             }
 
 
@@ -120,116 +124,84 @@ public class GameManager : MonoBehaviour
                 turnState = TurnState.EndMatch;
                 winText.text = "IA Win";
                 WinGameObject.SetActive(true);
-                return;
+                return 1;
             }
         }
-        if (Cases[2].Type == Cases[4].Type && Cases[0].Type == Cases[6].Type)
+        if (Cases[2].Type == Cases[4].Type && Cases[2].Type == Cases[6].Type)
         {
-            if (Cases[0].Type == Case.CaseType.Free)
-                return;
-
-            if (Cases[0].Type == Case.CaseType.Player)
+           
+            if (Cases[2].Type == Case.CaseType.Player)
             {
                 turnState = TurnState.EndMatch;
                 winText.text = "Player Win";
                 WinGameObject.SetActive(true);
-                return;
+                return -1;
             }
 
 
-            if (Cases[0].Type == Case.CaseType.IA)
+            if (Cases[2].Type == Case.CaseType.IA)
             {
                 turnState = TurnState.EndMatch;
                 winText.text = "IA Win";
                 WinGameObject.SetActive(true);
-                return;
+                return 1;
             }
         }
-
-    }
-    
-    public void Reload()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-
-    public int CheckIAWin()
-    {
         if (EmptyCases.Count == 0)
         {
-            return EndGameResult(0);
+            turnState = TurnState.EndMatch;
+            winText.text = "Draw";
+            WinGameObject.SetActive(true);
+            return 0;
         }
+        return 0;
+    }
+    public bool CheckWin(Case.CaseType type)
+    {
         // Horizontal
         for (int i = 0; i < 2; i++)
         {
-            if (Cases[0 + 3 * i].Type == Cases[1 + 3 * i].Type && Cases[0 + 3 * i].Type == Cases[2 + 3 * i].Type)
+            if (Cases[0 + 3 * i].Type == type &&  Cases[1 + 3 * i].Type == type && Cases[2 + 3 * i].Type == type)
             {
-                if (Cases[0 + 3 * i].Type == Case.CaseType.Player)
-                {
-                    return EndGameResult(2);
-                }
-
-
-                if (Cases[0 + 3 * i].Type == Case.CaseType.IA)
-                {
-                    return EndGameResult(1);
-                }
+                return true;
             }
         }
 
         // Vertical
+
         for (int i = 0; i < 2; i++)
         {
-            if (Cases[0 + 1 * i].Type == Cases[3 + 1 * i].Type && Cases[0 + i * i].Type == Cases[6 + i * i].Type)
-            {
-                if (Cases[0 + 1 * i].Type == Case.CaseType.Player)
-                {
-                    return EndGameResult(2);
-                }
-
-
-                if (Cases[0 + 3 * i].Type == Case.CaseType.IA)
-                {
-                    return EndGameResult(1);
-                }
+            if (Cases[0 + 1 * i].Type == type && Cases[3 + 1 * i].Type == type && Cases[0 + i * i].Type == type)
+            { 
+                return true;
             }
         }
 
-        // Diagonal
-        if (Cases[0].Type == Cases[4].Type && Cases[0].Type == Cases[8].Type)
+        // Diagonals
+        if (Cases[0].Type == type && Cases[4].Type == type && Cases[8].Type == type)
         {
-
-            if (Cases[0].Type == Case.CaseType.Player)
-            {
-                return EndGameResult(2);
-            }
-
-
-            if (Cases[0].Type == Case.CaseType.IA)
-            {
-                return EndGameResult(1);
-            }
+            return true;
         }
-        if (Cases[2].Type == Cases[4].Type && Cases[0].Type == Cases[6].Type)
+        if (Cases[2].Type == type && Cases[4].Type == type && Cases[6].Type == type)
         {
-            if (Cases[0].Type == Case.CaseType.Player)
-            {
-                return EndGameResult(2);
-            }
-
-
-            if (Cases[0].Type == Case.CaseType.IA)
-            {
-                return EndGameResult(1);
-            }
+            return true;
         }
 
-        return EndGameResult(0);
+        return false;
     }
-
-    public int EndGameResult(int i)
+    public bool CheckDraw()
     {
-        return i;
+        for (int i = 0; i < 9; i++)
+        {
+            if(Cases[i].Type == Case.CaseType.Free)
+            {
+                return false;
+            }
+        }
+        return true;
     }
-
+    public void Reload()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
 }

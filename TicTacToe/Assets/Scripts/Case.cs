@@ -32,13 +32,14 @@ public class Case : MonoBehaviour
         GameManager.Instance.EmptyCases.Remove(gameObject);
         Type = CaseType.Player;
         Instantiate(GameManager.Instance.PlayerShape, transform.position, Quaternion.identity, transform);
+        GameManager.Instance.CheckWin();
     }
     public void IaTake()
     {
-        GameManager.Instance.turnState = GameManager.TurnState.PlayerTurn;
         Used = true;
         GameManager.Instance.EmptyCases.Remove(gameObject);
         Type = CaseType.IA;
         Instantiate(GameManager.Instance.IaShape, transform.position, Quaternion.identity, transform);
+        GameManager.Instance.CheckWin();
     }
 }
